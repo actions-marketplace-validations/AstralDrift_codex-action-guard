@@ -16,7 +16,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -26,8 +26,40 @@ jobs:
           go-version-file: go.mod
           cache: true
 
+      - name: Format check
+        run: |
+          set -euo pipefail
+          unformatted="$(gofmt -l .)"
+          if [[ -n "${unformatted}" ]]; then
+            echo "gofmt needed on:" >&2
+            echo "${unformatted}" >&2
+            exit 1
+          fi
+
+      - name: Vet
+        run: go vet ./...
+
       - name: Test
         run: go test ./...
+
+      - name: Cross-compile smoke
+        run: |
+          set -euo pipefail
+          for target in \
+            "linux amd64" "linux arm64" \
+            "darwin amd64" "darwin arm64" \
+            "windows amd64" "windows arm64"
+          do
+            read -r goos goarch <<< "${target}"
+            ext=""
+            if [[ "${goos}" == "windows" ]]; then
+              ext=".exe"
+            fi
+            out="/tmp/codex-action-guard-${goos}-${goarch}${ext}"
+            GOOS="${goos}" GOARCH="${goarch}" CGO_ENABLED=0 \
+              go build -trimpath -o "${out}" ./cmd/codex-action-guard
+            rm -f "${out}"
+          done
 
       - name: Dogfood workflow audit
         run: go run ./cmd/codex-action-guard audit --all --fail-on high

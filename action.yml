@@ -31,7 +31,24 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Resolve run mode
+      id: resolve
+      shell: bash
+      run: |
+        set -euo pipefail
+        ref="${GITHUB_ACTION_REF}"
+        # Full release tags (vMAJOR.MINOR.PATCH with optional prerelease suffix)
+        # download a checksum-verified binary. Floating tags (v0), branches, and
+        # SHAs fall back to go run from the checked-out action source.
+        if [[ "${ref}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-].*)?$ ]]; then
+          echo "mode=release" >> "${GITHUB_OUTPUT}"
+          echo "version=${ref}" >> "${GITHUB_OUTPUT}"
+        else
+          echo "mode=source" >> "${GITHUB_OUTPUT}"
+        fi
+
     - name: Set up Go
+      if: steps.resolve.outputs.mode == 'source'
       uses: actions/setup-go@v6
       with:
         go-version-file: ${{ github.action_path }}/go.mod
@@ -39,15 +56,92 @@ runs:
 
     - name: Run codex-action-guard
       shell: bash
+      env:
+        GUARD_MODE: ${{ steps.resolve.outputs.mode }}
+        GUARD_VERSION: ${{ steps.resolve.outputs.version }}
       run: |
         set -euo pipefail
+
         all_flag=()
         if [[ "${{ inputs.all }}" == "true" ]]; then
           all_flag=(--all)
         fi
-        cd "$GITHUB_WORKSPACE"
-        go run "$GITHUB_ACTION_PATH/cmd/codex-action-guard" audit "${{ inputs.path }}" \
-          --format "${{ inputs.format }}" \
-          --output "${{ inputs.output }}" \
-          --fail-on "${{ inputs.fail-on }}" \
+
+        audit_args=(
+          audit "${{ inputs.path }}"
+          --format "${{ inputs.format }}"
+          --output "${{ inputs.output }}"
+          --fail-on "${{ inputs.fail-on }}"
           "${all_flag[@]}"
+        )
+
+        if [[ "${GUARD_MODE}" != "release" ]]; then
+          cd "$GITHUB_WORKSPACE"
+          go run "$GITHUB_ACTION_PATH/cmd/codex-action-guard" "${audit_args[@]}"
+          exit 0
+        fi
+
+        version="${GUARD_VERSION}"
+        case "$(uname -s | tr '[:upper:]' '[:lower:]')" in
+          linux*) goos=linux ;;
+          darwin*) goos=darwin ;;
+          mingw*|msys*|cygwin*) goos=windows ;;
+          *)
+            echo "unsupported OS for release binary download: $(uname -s)" >&2
+            exit 1
+            ;;
+        esac
+        case "$(uname -m)" in
+          x86_64|amd64) goarch=amd64 ;;
+          aarch64|arm64) goarch=arm64 ;;
+          *)
+            echo "unsupported architecture for release binary download: $(uname -m)" >&2
+            exit 1
+            ;;
+        esac
+
+        base="codex-action-guard_${version}_${goos}_${goarch}"
+        if [[ "${goos}" == "windows" ]]; then
+          archive="${base}.zip"
+          binary_name="codex-action-guard.exe"
+        else
+          archive="${base}.tar.gz"
+          binary_name="codex-action-guard"
+        fi
+
+        repo="https://github.com/AstralDrift/codex-action-guard"
+        tmpdir="$(mktemp -d)"
+        cleanup() { rm -rf "${tmpdir}"; }
+        trap cleanup EXIT
+
+        curl -fsSL -o "${tmpdir}/SHA256SUMS" \
+          "${repo}/releases/download/${version}/SHA256SUMS"
+        curl -fsSL -o "${tmpdir}/${archive}" \
+          "${repo}/releases/download/${version}/${archive}"
+
+        (
+          cd "${tmpdir}"
+          expected="$(awk -v f="${archive}" '$2 == f { print $1; exit }' SHA256SUMS)"
+          if [[ -z "${expected}" ]]; then
+            echo "SHA256SUMS has no entry for ${archive}" >&2
+            exit 1
+          fi
+          actual="$(shasum -a 256 "${archive}" | awk '{ print $1 }')"
+          if [[ "${actual}" != "${expected}" ]]; then
+            echo "checksum mismatch for ${archive}" >&2
+            echo "expected: ${expected}" >&2
+            echo "actual:   ${actual}" >&2
+            exit 1
+          fi
+
+          if [[ "${goos}" == "windows" ]]; then
+            unzip -q "${archive}"
+          else
+            tar -xzf "${archive}"
+          fi
+        )
+
+        bin="${tmpdir}/${base}/${binary_name}"
+        chmod +x "${bin}"
+        cd "$GITHUB_WORKSPACE"
+        "${bin}" "${audit_args[@]}"

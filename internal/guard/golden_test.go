@@ -13,37 +13,49 @@ import (
 var updateGolden = flag.Bool("update", false, "update golden report files")
 
 func TestGoldenReports(t *testing.T) {
-	report, err := AuditPath(filepath.Join("..", "..", "fixtures", "secure"), AuditOptions{All: true, ToolVersion: "1.0.0"})
-	if err != nil {
-		t.Fatal(err)
-	}
-	normalizeGoldenReport(&report)
-
-	cases := []struct {
+	fixtures := []struct {
 		name string
-		path string
-		data []byte
+		dir  string
 	}{
-		{name: "markdown", path: filepath.Join("..", "..", "testdata", "golden", "markdown", "secure.md"), data: []byte(RenderMarkdown(report))},
-		{name: "json", path: filepath.Join("..", "..", "testdata", "golden", "json", "secure.json"), data: mustGoldenJSON(t, report)},
-		{name: "sarif", path: filepath.Join("..", "..", "testdata", "golden", "sarif", "secure.sarif"), data: mustGoldenSARIF(t, report)},
+		{name: "secure", dir: filepath.Join("..", "..", "fixtures", "secure")},
+		{name: "vulnerable", dir: filepath.Join("..", "..", "fixtures", "vulnerable")},
 	}
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			if *updateGolden {
-				if err := os.MkdirAll(filepath.Dir(tc.path), 0o755); err != nil {
-					t.Fatal(err)
-				}
-				if err := os.WriteFile(tc.path, tc.data, 0o644); err != nil {
-					t.Fatal(err)
-				}
-			}
-			want, err := os.ReadFile(tc.path)
+
+	for _, fixture := range fixtures {
+		t.Run(fixture.name, func(t *testing.T) {
+			report, err := AuditPath(fixture.dir, AuditOptions{All: true, ToolVersion: "1.0.0"})
 			if err != nil {
 				t.Fatal(err)
 			}
-			if !bytes.Equal(want, tc.data) {
-				t.Fatalf("golden mismatch for %s\nwant %d bytes\ngot  %d bytes\nrun go test ./internal/guard -update to refresh intentionally", tc.path, len(want), len(tc.data))
+			normalizeGoldenReport(&report)
+
+			cases := []struct {
+				name string
+				path string
+				data []byte
+			}{
+				{name: "markdown", path: filepath.Join("..", "..", "testdata", "golden", "markdown", fixture.name+".md"), data: []byte(RenderMarkdown(report))},
+				{name: "json", path: filepath.Join("..", "..", "testdata", "golden", "json", fixture.name+".json"), data: mustGoldenJSON(t, report)},
+				{name: "sarif", path: filepath.Join("..", "..", "testdata", "golden", "sarif", fixture.name+".sarif"), data: mustGoldenSARIF(t, report)},
+			}
+			for _, tc := range cases {
+				t.Run(tc.name, func(t *testing.T) {
+					if *updateGolden {
+						if err := os.MkdirAll(filepath.Dir(tc.path), 0o755); err != nil {
+							t.Fatal(err)
+						}
+						if err := os.WriteFile(tc.path, tc.data, 0o644); err != nil {
+							t.Fatal(err)
+						}
+					}
+					want, err := os.ReadFile(tc.path)
+					if err != nil {
+						t.Fatal(err)
+					}
+					if !bytes.Equal(want, tc.data) {
+						t.Fatalf("golden mismatch for %s\nwant %d bytes\ngot  %d bytes\nrun go test ./internal/guard -update to refresh intentionally", tc.path, len(want), len(tc.data))
+					}
+				})
 			}
 		})
 	}

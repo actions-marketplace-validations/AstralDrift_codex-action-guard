@@ -4,9 +4,26 @@ This project follows Semantic Versioning once tagged releases begin. Changes are
 
 ## Unreleased
 
+## v0.2.0-alpha.1 - 2026-07-17
+
+### Added
+
+- GitHub Action release tags now download a checksum-verified CLI binary from the matching GitHub Release instead of always compiling with `go run`.
+- CI now runs `gofmt` checks, `go vet`, and a six-target cross-compile smoke build.
+- Golden Markdown, JSON, and SARIF snapshots for the vulnerable fixture set.
+
 ### Changed
 
-- Pull request checklist now asks contributors to run the dogfood audit gate.
+- Floating tags (`v0`), branches, and commit SHAs still fall back to `go run` from the checked-out action source for PR dogfooding and local `uses: ./`.
+- Release workflow marks tags containing `-alpha`, `-beta`, or `-rc` as GitHub prereleases.
+- Generated installer/profile workflows and examples now use `actions/checkout@v7` and `actions/upload-artifact@v7`.
+- `docs/roadmap.md` is a stub that points at the canonical root `ROADMAP.md`.
+- `SUPPORT.md` points at GitHub Issues only.
+- Architecture docs no longer describe unused facade packages.
+
+### Removed
+
+- Unused `internal/rules`, `internal/reporters`, and `internal/taint` packages that were never imported by the CLI.
 
 ## v0.1.1 - 2026-06-01
 

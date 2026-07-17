@@ -97,7 +97,7 @@ jobs:
   codex-action-guard:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -113,7 +113,7 @@ jobs:
           sarif_file: codex-action-guard.sarif
 ```
 
-The action wrapper currently uses Go from the checked-out action source. Tagged releases also publish CLI archives and checksums for direct installation.
+Pinned release tags (`@v0.2.0-alpha.1`, `@v0.1.1`, and similar) download a checksum-verified CLI binary from that GitHub Release. Floating tags such as `@v0`, branches, and commit SHAs fall back to `go run` from the checked-out action source. Tagged releases also publish CLI archives and checksums for direct installation.
 
 See [docs/install.md](docs/install.md) for the artifact and SARIF installer presets.
 

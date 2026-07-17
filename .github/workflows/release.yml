@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -73,8 +73,12 @@ jobs:
         run: |
           set -euo pipefail
           version="${GITHUB_REF_NAME}"
+          prerelease_args=()
+          if [[ "${version}" == *"-alpha"* || "${version}" == *"-beta"* || "${version}" == *"-rc"* ]]; then
+            prerelease_args=(--prerelease)
+          fi
           if gh release view "${version}" >/dev/null 2>&1; then
             gh release upload "${version}" dist/* --clobber
           else
-            gh release create "${version}" dist/* --title "${version}" --generate-notes
+            gh release create "${version}" dist/* --title "${version}" --generate-notes "${prerelease_args[@]}"
           fi

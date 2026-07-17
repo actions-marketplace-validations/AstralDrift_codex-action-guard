@@ -46,12 +46,12 @@ func TestArtifactTemplateSafetyProperties(t *testing.T) {
 		t.Fatal(err)
 	}
 	mustContainAll(t, template,
-		"uses: actions/checkout@v6",
+		"uses: actions/checkout@v7",
 		"persist-credentials: false",
 		"uses: AstralDrift/codex-action-guard@v0",
 		"fail-on: high",
 		"format: markdown",
-		"uses: actions/upload-artifact@v5",
+		"uses: actions/upload-artifact@v7",
 		"FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true",
 		"permissions:\n  contents: read",
 		"workflow_dispatch:",
@@ -71,7 +71,7 @@ func TestSARIFTemplateSafetyProperties(t *testing.T) {
 		t.Fatal(err)
 	}
 	mustContainAll(t, template,
-		"uses: actions/checkout@v6",
+		"uses: actions/checkout@v7",
 		"persist-credentials: false",
 		"uses: AstralDrift/codex-action-guard@v0",
 		"fail-on: high",

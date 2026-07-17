@@ -1,14 +1,8 @@
 # Support
 
-For questions, open a GitHub Discussion if available, or file an issue using the closest issue template.
+For questions, bug reports, false positives, rule requests, documentation gaps, and safe profile improvements, file a GitHub issue using the closest issue template:
 
-Use public issues for:
-
-- Bug reports.
-- False positives.
-- Rule requests.
-- Documentation gaps.
-- Safe profile improvements.
+https://github.com/AstralDrift/codex-action-guard/issues/new/choose
 
 Do not use public issues for:
 

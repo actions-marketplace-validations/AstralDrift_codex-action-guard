@@ -18,9 +18,7 @@
 - `internal/guard`: YAML parsing, workflow modeling, rule evaluation, rule docs, and report rendering.
 - `internal/providers/codex`: OpenAI Codex GitHub Action provider facade for detection, profiles, prompts, schemas, and rules.
 - `internal/profiles`: generated workflow profiles, prompt files, schemas, and threat-model text.
-- `internal/reporters`: report rendering facade for Markdown, JSON, SARIF, and review packets.
-- `internal/rules`: rule catalog, severity, finding, and engine facade.
-- `internal/taint`: small source/sink/path types used to keep trust-boundary vocabulary explicit.
+- `internal/installer`: `install` presets that write guard workflows into a target repository.
 
 ## Audit data flow
 

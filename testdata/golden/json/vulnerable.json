@@ -1,0 +1,1000 @@
+{
+  "metadata": {
+    "tool": "codex-action-guard",
+    "version": "1.0.0",
+    "rule_version": "v0",
+    "generated_at": "2026-01-02T03:04:05Z"
+  },
+  "root": "\u003cROOT\u003e",
+  "scanned_files": [
+    ".github/codex/prompts/review.md",
+    ".github/codex/schemas/review.schema.json",
+    ".github/workflows/codex-vulnerable.yml"
+  ],
+  "codex_workflow_files": [
+    ".github/workflows/codex-vulnerable.yml"
+  ],
+  "codex_invocations": [
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 17,
+      "job": "pr-body-direct-prompt",
+      "step": "Run Codex with raw PR body",
+      "kind": "openai/codex-action",
+      "prompt_boundary": "Run Codex with raw PR body (with.prompt)",
+      "sandbox": "read-only",
+      "privilege_context": "read permissions: contents"
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 33,
+      "job": "issue-comment-write-job",
+      "step": "Run Codex from issue comment",
+      "kind": "openai/codex-action",
+      "prompt_boundary": "Run Codex from issue comment (with.prompt)",
+      "sandbox": "read-only",
+      "privilege_context": "write permissions: issues, pull-requests"
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 52,
+      "job": "job-level-key-with-repo-code",
+      "step": "Run Codex",
+      "kind": "openai/codex-action",
+      "prompt_boundary": "Run Codex (prompt-file: .github/codex/prompts/review.md)",
+      "prompt_file": ".github/codex/prompts/review.md",
+      "sandbox": "read-only",
+      "privilege_context": "read permissions: contents"
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 69,
+      "job": "privileged-head-checkout",
+      "step": "Run Codex after privileged checkout",
+      "kind": "openai/codex-action",
+      "prompt_boundary": "Run Codex after privileged checkout (prompt-file: .github/codex/prompts/review.md)",
+      "prompt_file": ".github/codex/prompts/review.md",
+      "sandbox": "read-only",
+      "privilege_context": "write permissions: pull-requests"
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 81,
+      "job": "unsafe-sandbox",
+      "step": "Run Codex with full access",
+      "kind": "openai/codex-action",
+      "prompt_boundary": "Run Codex with full access (with.prompt)",
+      "sandbox": "danger-full-access",
+      "privilege_context": "read permissions: contents"
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 91,
+      "job": "broad-token-codex",
+      "step": "Run Codex with inherited write-all token",
+      "kind": "openai/codex-action",
+      "prompt_boundary": "Run Codex with inherited write-all token (prompt-file: .github/codex/prompts/review.md)",
+      "prompt_file": ".github/codex/prompts/review.md",
+      "sandbox": "read-only",
+      "privilege_context": "permissions: write-all"
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 103,
+      "job": "output-to-shell",
+      "step": "Run Codex without schema",
+      "kind": "openai/codex-action",
+      "prompt_boundary": "Run Codex without schema (prompt-file: .github/codex/prompts/review.md)",
+      "prompt_file": ".github/codex/prompts/review.md",
+      "output_file": "codex-output.sh",
+      "sandbox": "read-only",
+      "privilege_context": "read permissions: contents"
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 119,
+      "job": "output-posted-directly",
+      "step": "Run Codex without schema",
+      "kind": "openai/codex-action",
+      "prompt_boundary": "Run Codex without schema (prompt-file: .github/codex/prompts/review.md)",
+      "prompt_file": ".github/codex/prompts/review.md",
+      "sandbox": "read-only",
+      "privilege_context": "write permissions: issues"
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 147,
+      "job": "prompt-file-reference",
+      "step": "Run Codex with generated prompt",
+      "kind": "openai/codex-action",
+      "prompt_boundary": "Run Codex with generated prompt (prompt-file: generated-prompt.md)",
+      "prompt_file": "generated-prompt.md",
+      "output_schema_file": ".github/codex/schemas/review.schema.json",
+      "sandbox": "read-only",
+      "privilege_context": "read permissions: contents"
+    }
+  ],
+  "findings": [
+    {
+      "rule_id": "CODX006",
+      "title": "Privileged trigger checks out untrusted code before Codex",
+      "severity": "critical",
+      "confidence": "high",
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 65,
+      "source": "pull_request_target/workflow_run untrusted checkout",
+      "prompt_boundary": "Run Codex after privileged checkout (prompt-file: .github/codex/prompts/review.md)",
+      "codex_invocation": "openai/codex-action job privileged-head-checkout at .github/workflows/codex-vulnerable.yml:69",
+      "privilege_context": "write permissions: pull-requests",
+      "downstream_sink": "checkout before Codex",
+      "evidence": [
+        {
+          "file": ".github/workflows/codex-vulnerable.yml",
+          "line": 65,
+          "description": "Privileged workflow checks out attacker-influenced code before Codex runs.",
+          "snippet": "- name: Checkout PR head in privileged workflow"
+        }
+      ],
+      "why_it_matters": "Detects pull_request_target or workflow_run workflows that check out PR head or workflow-run code before Codex or write-capable steps.",
+      "safer_pattern": "Do not checkout untrusted head code in privileged jobs. Use pull_request with read-only permissions or split into an unprivileged job.",
+      "false_positive_notes": "Checking out the base branch on pull_request_target is not the same as checking out attacker-controlled head code.",
+      "references": [
+        "GitHub Actions pull_request_target security"
+      ]
+    },
+    {
+      "rule_id": "CODX004",
+      "title": "Codex uses danger-full-access or unsafe strategy without trusted trigger or gate",
+      "severity": "critical",
+      "confidence": "high",
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 81,
+      "prompt_boundary": "Run Codex with full access (with.prompt)",
+      "codex_invocation": "openai/codex-action job unsafe-sandbox at .github/workflows/codex-vulnerable.yml:81",
+      "privilege_context": "read permissions: contents",
+      "evidence": [
+        {
+          "file": ".github/workflows/codex-vulnerable.yml",
+          "line": 81,
+          "description": "Codex is configured with danger-full-access.",
+          "snippet": "- name: Run Codex with full access"
+        }
+      ],
+      "why_it_matters": "Detects dangerous sandbox or safety strategy choices, especially on untrusted triggers.",
+      "safer_pattern": "Prefer read-only or workspace-write with privilege reduction. Add actor allowlists, maintainer labels, environments, or manual dispatch.",
+      "false_positive_notes": "Some self-hosted or Windows workflows may require unsafe strategy. They still need trusted prompts and tight gating.",
+      "references": [
+        "openai/codex-action Safety Strategy"
+      ]
+    },
+    {
+      "rule_id": "CODX002",
+      "title": "Untrusted content reaches Codex prompt in write-capable job",
+      "severity": "high",
+      "confidence": "high",
+      "file": ".github/codex/prompts/review.md",
+      "line": 4,
+      "source": "pull request title",
+      "prompt_boundary": "prompt-file: .github/codex/prompts/review.md",
+      "codex_invocation": "openai/codex-action job job-level-key-with-repo-code at .github/workflows/codex-vulnerable.yml:52",
+      "privilege_context": "read permissions: contents; uses secrets",
+      "evidence": [
+        {
+          "file": ".github/codex/prompts/review.md",
+          "line": 4,
+          "description": "The untrusted prompt source shares a job with secrets, write permissions, OIDC, or write-capable sinks.",
+          "snippet": "${{ github.event.pull_request.title }}"
+        }
+      ],
+      "why_it_matters": "Escalates CODX001 when the same job has write permissions, secrets, OIDC, deployment access, or later write-capable side effects.",
+      "safer_pattern": "Split read-only Codex generation from write-capable follow-up jobs and require schema validation plus a trusted gate before any write.",
+      "false_positive_notes": "The rule is confidence-sensitive. If the job only has read permissions and no write sink, CODX001 should be the primary finding.",
+      "references": [
+        "openai/codex-action Security page",
+        "GitHub token permissions"
+      ]
+    },
+    {
+      "rule_id": "CODX002",
+      "title": "Untrusted content reaches Codex prompt in write-capable job",
+      "severity": "high",
+      "confidence": "high",
+      "file": ".github/codex/prompts/review.md",
+      "line": 4,
+      "source": "pull request title",
+      "prompt_boundary": "prompt-file: .github/codex/prompts/review.md",
+      "codex_invocation": "openai/codex-action job privileged-head-checkout at .github/workflows/codex-vulnerable.yml:69",
+      "privilege_context": "write permissions: pull-requests; uses secrets; write-capable side effects present",
+      "evidence": [
+        {
+          "file": ".github/codex/prompts/review.md",
+          "line": 4,
+          "description": "The untrusted prompt source shares a job with secrets, write permissions, OIDC, or write-capable sinks.",
+          "snippet": "${{ github.event.pull_request.title }}"
+        }
+      ],
+      "why_it_matters": "Escalates CODX001 when the same job has write permissions, secrets, OIDC, deployment access, or later write-capable side effects.",
+      "safer_pattern": "Split read-only Codex generation from write-capable follow-up jobs and require schema validation plus a trusted gate before any write.",
+      "false_positive_notes": "The rule is confidence-sensitive. If the job only has read permissions and no write sink, CODX001 should be the primary finding.",
+      "references": [
+        "openai/codex-action Security page",
+        "GitHub token permissions"
+      ]
+    },
+    {
+      "rule_id": "CODX002",
+      "title": "Untrusted content reaches Codex prompt in write-capable job",
+      "severity": "high",
+      "confidence": "high",
+      "file": ".github/codex/prompts/review.md",
+      "line": 4,
+      "source": "pull request title",
+      "prompt_boundary": "prompt-file: .github/codex/prompts/review.md",
+      "codex_invocation": "openai/codex-action job broad-token-codex at .github/workflows/codex-vulnerable.yml:91",
+      "privilege_context": "permissions: write-all; uses secrets; write-capable side effects present",
+      "evidence": [
+        {
+          "file": ".github/codex/prompts/review.md",
+          "line": 4,
+          "description": "The untrusted prompt source shares a job with secrets, write permissions, OIDC, or write-capable sinks.",
+          "snippet": "${{ github.event.pull_request.title }}"
+        }
+      ],
+      "why_it_matters": "Escalates CODX001 when the same job has write permissions, secrets, OIDC, deployment access, or later write-capable side effects.",
+      "safer_pattern": "Split read-only Codex generation from write-capable follow-up jobs and require schema validation plus a trusted gate before any write.",
+      "false_positive_notes": "The rule is confidence-sensitive. If the job only has read permissions and no write sink, CODX001 should be the primary finding.",
+      "references": [
+        "openai/codex-action Security page",
+        "GitHub token permissions"
+      ]
+    },
+    {
+      "rule_id": "CODX002",
+      "title": "Untrusted content reaches Codex prompt in write-capable job",
+      "severity": "high",
+      "confidence": "high",
+      "file": ".github/codex/prompts/review.md",
+      "line": 4,
+      "source": "pull request title",
+      "prompt_boundary": "prompt-file: .github/codex/prompts/review.md",
+      "codex_invocation": "openai/codex-action job output-to-shell at .github/workflows/codex-vulnerable.yml:103",
+      "privilege_context": "read permissions: contents; uses secrets",
+      "evidence": [
+        {
+          "file": ".github/codex/prompts/review.md",
+          "line": 4,
+          "description": "The untrusted prompt source shares a job with secrets, write permissions, OIDC, or write-capable sinks.",
+          "snippet": "${{ github.event.pull_request.title }}"
+        }
+      ],
+      "why_it_matters": "Escalates CODX001 when the same job has write permissions, secrets, OIDC, deployment access, or later write-capable side effects.",
+      "safer_pattern": "Split read-only Codex generation from write-capable follow-up jobs and require schema validation plus a trusted gate before any write.",
+      "false_positive_notes": "The rule is confidence-sensitive. If the job only has read permissions and no write sink, CODX001 should be the primary finding.",
+      "references": [
+        "openai/codex-action Security page",
+        "GitHub token permissions"
+      ]
+    },
+    {
+      "rule_id": "CODX002",
+      "title": "Untrusted content reaches Codex prompt in write-capable job",
+      "severity": "high",
+      "confidence": "high",
+      "file": ".github/codex/prompts/review.md",
+      "line": 4,
+      "source": "pull request title",
+      "prompt_boundary": "prompt-file: .github/codex/prompts/review.md",
+      "codex_invocation": "openai/codex-action job output-posted-directly at .github/workflows/codex-vulnerable.yml:119",
+      "privilege_context": "write permissions: issues; uses secrets; write-capable side effects present",
+      "evidence": [
+        {
+          "file": ".github/codex/prompts/review.md",
+          "line": 4,
+          "description": "The untrusted prompt source shares a job with secrets, write permissions, OIDC, or write-capable sinks.",
+          "snippet": "${{ github.event.pull_request.title }}"
+        }
+      ],
+      "why_it_matters": "Escalates CODX001 when the same job has write permissions, secrets, OIDC, deployment access, or later write-capable side effects.",
+      "safer_pattern": "Split read-only Codex generation from write-capable follow-up jobs and require schema validation plus a trusted gate before any write.",
+      "false_positive_notes": "The rule is confidence-sensitive. If the job only has read permissions and no write sink, CODX001 should be the primary finding.",
+      "references": [
+        "openai/codex-action Security page",
+        "GitHub token permissions"
+      ]
+    },
+    {
+      "rule_id": "CODX007",
+      "title": "Codex job has broad GITHUB_TOKEN permissions",
+      "severity": "high",
+      "confidence": "high",
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 9,
+      "source": "GITHUB_TOKEN permissions",
+      "codex_invocation": "Codex job broad-token-codex",
+      "privilege_context": "permissions: write-all",
+      "evidence": [
+        {
+          "file": ".github/workflows/codex-vulnerable.yml",
+          "line": 9,
+          "description": "permissions: write-all",
+          "snippet": "permissions: write-all"
+        }
+      ],
+      "why_it_matters": "Flags missing explicit permissions, write-all, or broad write permissions on jobs invoking Codex.",
+      "safer_pattern": "Set explicit minimal permissions at the job level. Prefer contents: read for read-only Codex jobs.",
+      "false_positive_notes": "Some workflows need narrow write scopes. The finding should name the exact write permissions seen.",
+      "references": [
+        "GitHub Actions GITHUB_TOKEN permissions"
+      ]
+    },
+    {
+      "rule_id": "CODX002",
+      "title": "Untrusted content reaches Codex prompt in write-capable job",
+      "severity": "high",
+      "confidence": "high",
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 24,
+      "source": "pull request body",
+      "prompt_boundary": "Run Codex with raw PR body (with.prompt)",
+      "codex_invocation": "openai/codex-action job pr-body-direct-prompt at .github/workflows/codex-vulnerable.yml:17",
+      "privilege_context": "read permissions: contents; uses secrets",
+      "evidence": [
+        {
+          "file": ".github/workflows/codex-vulnerable.yml",
+          "line": 24,
+          "description": "The untrusted prompt source shares a job with secrets, write permissions, OIDC, or write-capable sinks.",
+          "snippet": "${{ github.event.pull_request.body }}"
+        }
+      ],
+      "why_it_matters": "Escalates CODX001 when the same job has write permissions, secrets, OIDC, deployment access, or later write-capable side effects.",
+      "safer_pattern": "Split read-only Codex generation from write-capable follow-up jobs and require schema validation plus a trusted gate before any write.",
+      "false_positive_notes": "The rule is confidence-sensitive. If the job only has read permissions and no write sink, CODX001 should be the primary finding.",
+      "references": [
+        "openai/codex-action Security page",
+        "GitHub token permissions"
+      ]
+    },
+    {
+      "rule_id": "CODX009",
+      "title": "Write-capable Codex workflow lacks trusted gate",
+      "severity": "high",
+      "confidence": "high",
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 28,
+      "source": "write-capable Codex job on untrusted trigger",
+      "codex_invocation": "Codex job issue-comment-write-job",
+      "privilege_context": "write permissions: issues, pull-requests",
+      "evidence": [
+        {
+          "file": ".github/workflows/codex-vulnerable.yml",
+          "line": 28,
+          "description": "The job can write or perform write-capable side effects but no obvious actor, label, allow-users, environment, or manual gate was found.",
+          "snippet": "runs-on: ubuntu-latest"
+        }
+      ],
+      "why_it_matters": "Detects write-capable Codex jobs without actor, allow-users, maintainer label, environment, or manual approval gates.",
+      "safer_pattern": "Add allow-users, actor allowlists, maintainer label checks, protected environments, or workflow_dispatch-only execution.",
+      "false_positive_notes": "The rule recognizes obvious gates but cannot prove branch protection or organization policy. Treat medium confidence as a review prompt.",
+      "references": [
+        "openai/codex-action allow-users",
+        "GitHub environments"
+      ]
+    },
+    {
+      "rule_id": "CODX002",
+      "title": "Untrusted content reaches Codex prompt in write-capable job",
+      "severity": "high",
+      "confidence": "high",
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 38,
+      "source": "comment body",
+      "prompt_boundary": "Run Codex from issue comment (with.prompt)",
+      "codex_invocation": "openai/codex-action job issue-comment-write-job at .github/workflows/codex-vulnerable.yml:33",
+      "privilege_context": "write permissions: issues, pull-requests; uses secrets; write-capable side effects present",
+      "evidence": [
+        {
+          "file": ".github/workflows/codex-vulnerable.yml",
+          "line": 38,
+          "description": "The untrusted prompt source shares a job with secrets, write permissions, OIDC, or write-capable sinks.",
+          "snippet": "prompt: \"Do what this comment asks: ${{ github.event.comment.body }}\""
+        }
+      ],
+      "why_it_matters": "Escalates CODX001 when the same job has write permissions, secrets, OIDC, deployment access, or later write-capable side effects.",
+      "safer_pattern": "Split read-only Codex generation from write-capable follow-up jobs and require schema validation plus a trusted gate before any write.",
+      "false_positive_notes": "The rule is confidence-sensitive. If the job only has read permissions and no write sink, CODX001 should be the primary finding.",
+      "references": [
+        "openai/codex-action Security page",
+        "GitHub token permissions"
+      ]
+    },
+    {
+      "rule_id": "CODX002",
+      "title": "Untrusted content reaches Codex prompt in write-capable job",
+      "severity": "high",
+      "confidence": "high",
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 38,
+      "source": "comment body",
+      "prompt_boundary": "Run Codex with full access (with.prompt)",
+      "codex_invocation": "openai/codex-action job unsafe-sandbox at .github/workflows/codex-vulnerable.yml:81",
+      "privilege_context": "read permissions: contents; uses secrets",
+      "evidence": [
+        {
+          "file": ".github/workflows/codex-vulnerable.yml",
+          "line": 38,
+          "description": "The untrusted prompt source shares a job with secrets, write permissions, OIDC, or write-capable sinks.",
+          "snippet": "prompt: \"Do what this comment asks: ${{ github.event.comment.body }}\""
+        }
+      ],
+      "why_it_matters": "Escalates CODX001 when the same job has write permissions, secrets, OIDC, deployment access, or later write-capable side effects.",
+      "safer_pattern": "Split read-only Codex generation from write-capable follow-up jobs and require schema validation plus a trusted gate before any write.",
+      "false_positive_notes": "The rule is confidence-sensitive. If the job only has read permissions and no write sink, CODX001 should be the primary finding.",
+      "references": [
+        "openai/codex-action Security page",
+        "GitHub token permissions"
+      ]
+    },
+    {
+      "rule_id": "CODX002",
+      "title": "Untrusted content reaches Codex prompt in write-capable job",
+      "severity": "high",
+      "confidence": "high",
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 38,
+      "source": "comment body",
+      "prompt_boundary": "Build prompt from comment (shell-generated prompt-file: generated-prompt.md)",
+      "codex_invocation": "openai/codex-action job prompt-file-reference at .github/workflows/codex-vulnerable.yml:147",
+      "privilege_context": "read permissions: contents; uses secrets",
+      "evidence": [
+        {
+          "file": ".github/workflows/codex-vulnerable.yml",
+          "line": 38,
+          "description": "The untrusted prompt source shares a job with secrets, write permissions, OIDC, or write-capable sinks.",
+          "snippet": "prompt: \"Do what this comment asks: ${{ github.event.comment.body }}\""
+        }
+      ],
+      "why_it_matters": "Escalates CODX001 when the same job has write permissions, secrets, OIDC, deployment access, or later write-capable side effects.",
+      "safer_pattern": "Split read-only Codex generation from write-capable follow-up jobs and require schema validation plus a trusted gate before any write.",
+      "false_positive_notes": "The rule is confidence-sensitive. If the job only has read permissions and no write sink, CODX001 should be the primary finding.",
+      "references": [
+        "openai/codex-action Security page",
+        "GitHub token permissions"
+      ]
+    },
+    {
+      "rule_id": "CODX003",
+      "title": "OpenAI or Codex API key exposed at job scope with repo-controlled code",
+      "severity": "high",
+      "confidence": "high",
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 46,
+      "source": "job env OPENAI_API_KEY",
+      "prompt_boundary": "job-level environment",
+      "codex_invocation": "Codex job job-level-key-with-repo-code",
+      "privilege_context": "read permissions: contents",
+      "evidence": [
+        {
+          "file": ".github/workflows/codex-vulnerable.yml",
+          "line": 46,
+          "description": "API key is exposed at job scope while the job checks out or runs repository-controlled code.",
+          "snippet": "OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}"
+        }
+      ],
+      "why_it_matters": "Flags job-level OPENAI_API_KEY or CODEX_API_KEY when the job checks out or runs repository-controlled code.",
+      "safer_pattern": "Pass secrets only to the Codex action input or the smallest possible step scope. Avoid job-level env for model API keys.",
+      "false_positive_notes": "Step-scoped use directly on openai/codex-action is the expected safe shape and should not trigger this rule.",
+      "references": [
+        "openai/codex-action README"
+      ]
+    },
+    {
+      "rule_id": "CODX009",
+      "title": "Write-capable Codex workflow lacks trusted gate",
+      "severity": "high",
+      "confidence": "high",
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 60,
+      "source": "write-capable Codex job on untrusted trigger",
+      "codex_invocation": "Codex job privileged-head-checkout",
+      "privilege_context": "write permissions: pull-requests",
+      "evidence": [
+        {
+          "file": ".github/workflows/codex-vulnerable.yml",
+          "line": 60,
+          "description": "The job can write or perform write-capable side effects but no obvious actor, label, allow-users, environment, or manual gate was found.",
+          "snippet": "runs-on: ubuntu-latest"
+        }
+      ],
+      "why_it_matters": "Detects write-capable Codex jobs without actor, allow-users, maintainer label, environment, or manual approval gates.",
+      "safer_pattern": "Add allow-users, actor allowlists, maintainer label checks, protected environments, or workflow_dispatch-only execution.",
+      "false_positive_notes": "The rule recognizes obvious gates but cannot prove branch protection or organization policy. Treat medium confidence as a review prompt.",
+      "references": [
+        "openai/codex-action allow-users",
+        "GitHub environments"
+      ]
+    },
+    {
+      "rule_id": "CODX009",
+      "title": "Write-capable Codex workflow lacks trusted gate",
+      "severity": "high",
+      "confidence": "high",
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 89,
+      "source": "write-capable Codex job on untrusted trigger",
+      "codex_invocation": "Codex job broad-token-codex",
+      "privilege_context": "permissions: write-all",
+      "evidence": [
+        {
+          "file": ".github/workflows/codex-vulnerable.yml",
+          "line": 89,
+          "description": "The job can write or perform write-capable side effects but no obvious actor, label, allow-users, environment, or manual gate was found.",
+          "snippet": "runs-on: ubuntu-latest"
+        }
+      ],
+      "why_it_matters": "Detects write-capable Codex jobs without actor, allow-users, maintainer label, environment, or manual approval gates.",
+      "safer_pattern": "Add allow-users, actor allowlists, maintainer label checks, protected environments, or workflow_dispatch-only execution.",
+      "false_positive_notes": "The rule recognizes obvious gates but cannot prove branch protection or organization policy. Treat medium confidence as a review prompt.",
+      "references": [
+        "openai/codex-action allow-users",
+        "GitHub environments"
+      ]
+    },
+    {
+      "rule_id": "CODX005",
+      "title": "Codex output feeds sensitive sink without schema validation",
+      "severity": "high",
+      "confidence": "high",
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 111,
+      "prompt_boundary": "Run Codex without schema (prompt-file: .github/codex/prompts/review.md)",
+      "codex_invocation": "openai/codex-action job output-to-shell at .github/workflows/codex-vulnerable.yml:103",
+      "privilege_context": "read permissions: contents",
+      "downstream_sink": "Execute Codex output: shell command consumes Codex output",
+      "evidence": [
+        {
+          "file": ".github/workflows/codex-vulnerable.yml",
+          "line": 111,
+          "description": "Codex output feeds a sensitive downstream sink without output-schema validation.",
+          "snippet": "bash codex-output.sh"
+        }
+      ],
+      "why_it_matters": "Detects Codex final messages or output files consumed by shell, github-script, gh, release, deploy, package publish, merge, label, or comment automation without structured validation.",
+      "safer_pattern": "Require output-schema or output-schema-file, validate with jq/ajv/jsonschema, and constrain downstream commands.",
+      "false_positive_notes": "Artifact upload alone is not treated as a sensitive sink. The rule focuses on automation that changes external state.",
+      "references": [
+        "SARIF 2.1.0",
+        "openai/codex-action Outputs"
+      ]
+    },
+    {
+      "rule_id": "CODX009",
+      "title": "Write-capable Codex workflow lacks trusted gate",
+      "severity": "high",
+      "confidence": "high",
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 115,
+      "source": "write-capable Codex job on untrusted trigger",
+      "codex_invocation": "Codex job output-posted-directly",
+      "privilege_context": "write permissions: issues",
+      "evidence": [
+        {
+          "file": ".github/workflows/codex-vulnerable.yml",
+          "line": 115,
+          "description": "The job can write or perform write-capable side effects but no obvious actor, label, allow-users, environment, or manual gate was found.",
+          "snippet": "runs-on: ubuntu-latest"
+        }
+      ],
+      "why_it_matters": "Detects write-capable Codex jobs without actor, allow-users, maintainer label, environment, or manual approval gates.",
+      "safer_pattern": "Add allow-users, actor allowlists, maintainer label checks, protected environments, or workflow_dispatch-only execution.",
+      "false_positive_notes": "The rule recognizes obvious gates but cannot prove branch protection or organization policy. Treat medium confidence as a review prompt.",
+      "references": [
+        "openai/codex-action allow-users",
+        "GitHub environments"
+      ]
+    },
+    {
+      "rule_id": "CODX005",
+      "title": "Codex output feeds sensitive sink without schema validation",
+      "severity": "high",
+      "confidence": "high",
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 126,
+      "prompt_boundary": "Run Codex without schema (prompt-file: .github/codex/prompts/review.md)",
+      "codex_invocation": "openai/codex-action job output-posted-directly at .github/workflows/codex-vulnerable.yml:119",
+      "privilege_context": "write permissions: issues",
+      "downstream_sink": "Post Codex output directly: github-script automation",
+      "evidence": [
+        {
+          "file": ".github/workflows/codex-vulnerable.yml",
+          "line": 126,
+          "description": "Codex output feeds a sensitive downstream sink without output-schema validation.",
+          "snippet": "actions/github-script@v7"
+        }
+      ],
+      "why_it_matters": "Detects Codex final messages or output files consumed by shell, github-script, gh, release, deploy, package publish, merge, label, or comment automation without structured validation.",
+      "safer_pattern": "Require output-schema or output-schema-file, validate with jq/ajv/jsonschema, and constrain downstream commands.",
+      "false_positive_notes": "Artifact upload alone is not treated as a sensitive sink. The rule focuses on automation that changes external state.",
+      "references": [
+        "SARIF 2.1.0",
+        "openai/codex-action Outputs"
+      ]
+    },
+    {
+      "rule_id": "CODX001",
+      "title": "Untrusted GitHub event content reaches Codex prompt",
+      "severity": "medium",
+      "confidence": "high",
+      "file": ".github/codex/prompts/review.md",
+      "line": 4,
+      "source": "pull request title",
+      "prompt_boundary": "prompt-file: .github/codex/prompts/review.md",
+      "codex_invocation": "openai/codex-action job job-level-key-with-repo-code at .github/workflows/codex-vulnerable.yml:52",
+      "privilege_context": "read permissions: contents",
+      "evidence": [
+        {
+          "file": ".github/codex/prompts/review.md",
+          "line": 4,
+          "description": "Untrusted GitHub event content appears in a prompt file consumed by Codex.",
+          "snippet": "${{ github.event.pull_request.title }}"
+        }
+      ],
+      "why_it_matters": "Detects attacker-controlled GitHub event fields interpolated into Codex prompts, prompt files, stdin, or shell-generated prompt files.",
+      "safer_pattern": "Use static prompt files, pass only stable identifiers such as PR numbers, fetch untrusted text through a sanitizer, or require a maintainer-controlled gate.",
+      "false_positive_notes": "The finding may be acceptable when the source is strongly gated or only trusted maintainers can control the field. Keep the gate near the Codex invocation and document it.",
+      "references": [
+        "openai/codex-action README",
+        "GitHub Actions security hardening"
+      ]
+    },
+    {
+      "rule_id": "CODX001",
+      "title": "Untrusted GitHub event content reaches Codex prompt",
+      "severity": "medium",
+      "confidence": "high",
+      "file": ".github/codex/prompts/review.md",
+      "line": 4,
+      "source": "pull request title",
+      "prompt_boundary": "prompt-file: .github/codex/prompts/review.md",
+      "codex_invocation": "openai/codex-action job privileged-head-checkout at .github/workflows/codex-vulnerable.yml:69",
+      "privilege_context": "write permissions: pull-requests",
+      "evidence": [
+        {
+          "file": ".github/codex/prompts/review.md",
+          "line": 4,
+          "description": "Untrusted GitHub event content appears in a prompt file consumed by Codex.",
+          "snippet": "${{ github.event.pull_request.title }}"
+        }
+      ],
+      "why_it_matters": "Detects attacker-controlled GitHub event fields interpolated into Codex prompts, prompt files, stdin, or shell-generated prompt files.",
+      "safer_pattern": "Use static prompt files, pass only stable identifiers such as PR numbers, fetch untrusted text through a sanitizer, or require a maintainer-controlled gate.",
+      "false_positive_notes": "The finding may be acceptable when the source is strongly gated or only trusted maintainers can control the field. Keep the gate near the Codex invocation and document it.",
+      "references": [
+        "openai/codex-action README",
+        "GitHub Actions security hardening"
+      ]
+    },
+    {
+      "rule_id": "CODX001",
+      "title": "Untrusted GitHub event content reaches Codex prompt",
+      "severity": "medium",
+      "confidence": "high",
+      "file": ".github/codex/prompts/review.md",
+      "line": 4,
+      "source": "pull request title",
+      "prompt_boundary": "prompt-file: .github/codex/prompts/review.md",
+      "codex_invocation": "openai/codex-action job broad-token-codex at .github/workflows/codex-vulnerable.yml:91",
+      "privilege_context": "permissions: write-all",
+      "evidence": [
+        {
+          "file": ".github/codex/prompts/review.md",
+          "line": 4,
+          "description": "Untrusted GitHub event content appears in a prompt file consumed by Codex.",
+          "snippet": "${{ github.event.pull_request.title }}"
+        }
+      ],
+      "why_it_matters": "Detects attacker-controlled GitHub event fields interpolated into Codex prompts, prompt files, stdin, or shell-generated prompt files.",
+      "safer_pattern": "Use static prompt files, pass only stable identifiers such as PR numbers, fetch untrusted text through a sanitizer, or require a maintainer-controlled gate.",
+      "false_positive_notes": "The finding may be acceptable when the source is strongly gated or only trusted maintainers can control the field. Keep the gate near the Codex invocation and document it.",
+      "references": [
+        "openai/codex-action README",
+        "GitHub Actions security hardening"
+      ]
+    },
+    {
+      "rule_id": "CODX001",
+      "title": "Untrusted GitHub event content reaches Codex prompt",
+      "severity": "medium",
+      "confidence": "high",
+      "file": ".github/codex/prompts/review.md",
+      "line": 4,
+      "source": "pull request title",
+      "prompt_boundary": "prompt-file: .github/codex/prompts/review.md",
+      "codex_invocation": "openai/codex-action job output-to-shell at .github/workflows/codex-vulnerable.yml:103",
+      "privilege_context": "read permissions: contents",
+      "evidence": [
+        {
+          "file": ".github/codex/prompts/review.md",
+          "line": 4,
+          "description": "Untrusted GitHub event content appears in a prompt file consumed by Codex.",
+          "snippet": "${{ github.event.pull_request.title }}"
+        }
+      ],
+      "why_it_matters": "Detects attacker-controlled GitHub event fields interpolated into Codex prompts, prompt files, stdin, or shell-generated prompt files.",
+      "safer_pattern": "Use static prompt files, pass only stable identifiers such as PR numbers, fetch untrusted text through a sanitizer, or require a maintainer-controlled gate.",
+      "false_positive_notes": "The finding may be acceptable when the source is strongly gated or only trusted maintainers can control the field. Keep the gate near the Codex invocation and document it.",
+      "references": [
+        "openai/codex-action README",
+        "GitHub Actions security hardening"
+      ]
+    },
+    {
+      "rule_id": "CODX001",
+      "title": "Untrusted GitHub event content reaches Codex prompt",
+      "severity": "medium",
+      "confidence": "high",
+      "file": ".github/codex/prompts/review.md",
+      "line": 4,
+      "source": "pull request title",
+      "prompt_boundary": "prompt-file: .github/codex/prompts/review.md",
+      "codex_invocation": "openai/codex-action job output-posted-directly at .github/workflows/codex-vulnerable.yml:119",
+      "privilege_context": "write permissions: issues",
+      "evidence": [
+        {
+          "file": ".github/codex/prompts/review.md",
+          "line": 4,
+          "description": "Untrusted GitHub event content appears in a prompt file consumed by Codex.",
+          "snippet": "${{ github.event.pull_request.title }}"
+        }
+      ],
+      "why_it_matters": "Detects attacker-controlled GitHub event fields interpolated into Codex prompts, prompt files, stdin, or shell-generated prompt files.",
+      "safer_pattern": "Use static prompt files, pass only stable identifiers such as PR numbers, fetch untrusted text through a sanitizer, or require a maintainer-controlled gate.",
+      "false_positive_notes": "The finding may be acceptable when the source is strongly gated or only trusted maintainers can control the field. Keep the gate near the Codex invocation and document it.",
+      "references": [
+        "openai/codex-action README",
+        "GitHub Actions security hardening"
+      ]
+    },
+    {
+      "rule_id": "CODX001",
+      "title": "Untrusted GitHub event content reaches Codex prompt",
+      "severity": "medium",
+      "confidence": "high",
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 24,
+      "source": "pull request body",
+      "prompt_boundary": "Run Codex with raw PR body (with.prompt)",
+      "codex_invocation": "openai/codex-action job pr-body-direct-prompt at .github/workflows/codex-vulnerable.yml:17",
+      "privilege_context": "read permissions: contents",
+      "evidence": [
+        {
+          "file": ".github/workflows/codex-vulnerable.yml",
+          "line": 24,
+          "description": "Untrusted GitHub event content is interpolated into the Codex prompt boundary.",
+          "snippet": "${{ github.event.pull_request.body }}"
+        }
+      ],
+      "why_it_matters": "Detects attacker-controlled GitHub event fields interpolated into Codex prompts, prompt files, stdin, or shell-generated prompt files.",
+      "safer_pattern": "Use static prompt files, pass only stable identifiers such as PR numbers, fetch untrusted text through a sanitizer, or require a maintainer-controlled gate.",
+      "false_positive_notes": "The finding may be acceptable when the source is strongly gated or only trusted maintainers can control the field. Keep the gate near the Codex invocation and document it.",
+      "references": [
+        "openai/codex-action README",
+        "GitHub Actions security hardening"
+      ]
+    },
+    {
+      "rule_id": "CODX001",
+      "title": "Untrusted GitHub event content reaches Codex prompt",
+      "severity": "medium",
+      "confidence": "high",
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 38,
+      "source": "comment body",
+      "prompt_boundary": "Run Codex from issue comment (with.prompt)",
+      "codex_invocation": "openai/codex-action job issue-comment-write-job at .github/workflows/codex-vulnerable.yml:33",
+      "privilege_context": "write permissions: issues, pull-requests",
+      "evidence": [
+        {
+          "file": ".github/workflows/codex-vulnerable.yml",
+          "line": 38,
+          "description": "Untrusted GitHub event content is interpolated into the Codex prompt boundary.",
+          "snippet": "prompt: \"Do what this comment asks: ${{ github.event.comment.body }}\""
+        }
+      ],
+      "why_it_matters": "Detects attacker-controlled GitHub event fields interpolated into Codex prompts, prompt files, stdin, or shell-generated prompt files.",
+      "safer_pattern": "Use static prompt files, pass only stable identifiers such as PR numbers, fetch untrusted text through a sanitizer, or require a maintainer-controlled gate.",
+      "false_positive_notes": "The finding may be acceptable when the source is strongly gated or only trusted maintainers can control the field. Keep the gate near the Codex invocation and document it.",
+      "references": [
+        "openai/codex-action README",
+        "GitHub Actions security hardening"
+      ]
+    },
+    {
+      "rule_id": "CODX001",
+      "title": "Untrusted GitHub event content reaches Codex prompt",
+      "severity": "medium",
+      "confidence": "high",
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 38,
+      "source": "comment body",
+      "prompt_boundary": "Run Codex with full access (with.prompt)",
+      "codex_invocation": "openai/codex-action job unsafe-sandbox at .github/workflows/codex-vulnerable.yml:81",
+      "privilege_context": "read permissions: contents",
+      "evidence": [
+        {
+          "file": ".github/workflows/codex-vulnerable.yml",
+          "line": 38,
+          "description": "Untrusted GitHub event content is interpolated into the Codex prompt boundary.",
+          "snippet": "prompt: \"Do what this comment asks: ${{ github.event.comment.body }}\""
+        }
+      ],
+      "why_it_matters": "Detects attacker-controlled GitHub event fields interpolated into Codex prompts, prompt files, stdin, or shell-generated prompt files.",
+      "safer_pattern": "Use static prompt files, pass only stable identifiers such as PR numbers, fetch untrusted text through a sanitizer, or require a maintainer-controlled gate.",
+      "false_positive_notes": "The finding may be acceptable when the source is strongly gated or only trusted maintainers can control the field. Keep the gate near the Codex invocation and document it.",
+      "references": [
+        "openai/codex-action README",
+        "GitHub Actions security hardening"
+      ]
+    },
+    {
+      "rule_id": "CODX001",
+      "title": "Untrusted GitHub event content reaches Codex prompt",
+      "severity": "medium",
+      "confidence": "high",
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 38,
+      "source": "comment body",
+      "prompt_boundary": "Build prompt from comment (shell-generated prompt-file: generated-prompt.md)",
+      "codex_invocation": "openai/codex-action job prompt-file-reference at .github/workflows/codex-vulnerable.yml:147",
+      "privilege_context": "read permissions: contents",
+      "evidence": [
+        {
+          "file": ".github/workflows/codex-vulnerable.yml",
+          "line": 38,
+          "description": "A shell step appears to write untrusted content into a prompt file consumed by Codex.",
+          "snippet": "prompt: \"Do what this comment asks: ${{ github.event.comment.body }}\""
+        }
+      ],
+      "why_it_matters": "Detects attacker-controlled GitHub event fields interpolated into Codex prompts, prompt files, stdin, or shell-generated prompt files.",
+      "safer_pattern": "Use static prompt files, pass only stable identifiers such as PR numbers, fetch untrusted text through a sanitizer, or require a maintainer-controlled gate.",
+      "false_positive_notes": "The finding may be acceptable when the source is strongly gated or only trusted maintainers can control the field. Keep the gate near the Codex invocation and document it.",
+      "references": [
+        "openai/codex-action README",
+        "GitHub Actions security hardening"
+      ]
+    },
+    {
+      "rule_id": "CODX010",
+      "title": "Codex output is posted without size limits, escaping, redaction, or schema constraints",
+      "severity": "medium",
+      "confidence": "high",
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 126,
+      "prompt_boundary": "Run Codex without schema (prompt-file: .github/codex/prompts/review.md)",
+      "codex_invocation": "openai/codex-action job output-posted-directly at .github/workflows/codex-vulnerable.yml:119",
+      "privilege_context": "write permissions: issues",
+      "downstream_sink": "Post Codex output directly: github-script automation",
+      "evidence": [
+        {
+          "file": ".github/workflows/codex-vulnerable.yml",
+          "line": 126,
+          "description": "Free-form Codex output appears to be posted without schema, size limit, escaping, or redaction.",
+          "snippet": "actions/github-script@v7"
+        }
+      ],
+      "why_it_matters": "Detects free-form Codex output posted to PR/issue comments, releases, summaries, or generated files without constraints.",
+      "safer_pattern": "Use schema constraints, length limits, escaping, and secret redaction before posting output.",
+      "false_positive_notes": "Free-form human-only artifacts are lower risk. Posting to public comments or releases needs more care.",
+      "references": [
+        "openai/codex-action output-schema-file"
+      ]
+    }
+  ],
+  "safe_patterns": [
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 17,
+      "pattern": "Codex runs with read-only sandbox settings."
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 15,
+      "pattern": "Codex job declares read-only or empty GITHUB_TOKEN permissions."
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 33,
+      "pattern": "Codex runs with read-only sandbox settings."
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 52,
+      "pattern": "Codex uses a checked-in prompt-file instead of large inline prompt text."
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 52,
+      "pattern": "Codex runs with read-only sandbox settings."
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 44,
+      "pattern": "Codex job declares read-only or empty GITHUB_TOKEN permissions."
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 69,
+      "pattern": "Codex uses a checked-in prompt-file instead of large inline prompt text."
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 69,
+      "pattern": "Codex runs with read-only sandbox settings."
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 79,
+      "pattern": "Codex job declares read-only or empty GITHUB_TOKEN permissions."
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 91,
+      "pattern": "Codex uses a checked-in prompt-file instead of large inline prompt text."
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 91,
+      "pattern": "Codex runs with read-only sandbox settings."
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 103,
+      "pattern": "Codex uses a checked-in prompt-file instead of large inline prompt text."
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 103,
+      "pattern": "Codex runs with read-only sandbox settings."
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 101,
+      "pattern": "Codex job declares read-only or empty GITHUB_TOKEN permissions."
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 119,
+      "pattern": "Codex uses a checked-in prompt-file instead of large inline prompt text."
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 119,
+      "pattern": "Codex runs with read-only sandbox settings."
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 147,
+      "pattern": "Codex uses a checked-in prompt-file instead of large inline prompt text."
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 147,
+      "pattern": "Codex output is constrained by an output schema."
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 147,
+      "pattern": "Codex runs with read-only sandbox settings."
+    },
+    {
+      "file": ".github/workflows/codex-vulnerable.yml",
+      "line": 142,
+      "pattern": "Codex job declares read-only or empty GITHUB_TOKEN permissions."
+    }
+  ],
+  "profile_suggestions": [
+    "Set explicit job-level permissions; read-only Codex jobs usually need contents: read and sometimes pull-requests: read.",
+    "Move static instructions into .github/codex/prompts and keep attacker-controlled text outside the prompt boundary unless gated.",
+    "Use output-schema-file before feeding Codex output to comments, releases, shell, gh, or deploy automation.",
+    "Add allow-users, actor checks, maintainer labels, protected environments, or workflow_dispatch-only entrypoints for write-capable workflows."
+  ]
+}

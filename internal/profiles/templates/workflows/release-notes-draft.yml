@@ -26,7 +26,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout selected ref
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ inputs.head }}
           fetch-depth: 0
@@ -44,7 +44,7 @@ jobs:
           safety-strategy: drop-sudo
 
       - name: Upload release notes draft artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: codex-release-notes-draft
           path: release-notes-draft.json
