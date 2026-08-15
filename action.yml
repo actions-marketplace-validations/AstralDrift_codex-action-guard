@@ -49,7 +49,7 @@ runs:
 
     - name: Set up Go
       if: steps.resolve.outputs.mode == 'source'
-      uses: actions/setup-go@v6
+      uses: actions/setup-go@v7
       with:
         go-version-file: ${{ github.action_path }}/go.mod
         cache: true
